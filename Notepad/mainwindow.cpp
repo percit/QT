@@ -1,0 +1,96 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent) //parent constructor
+    , ui(new Ui::MainWindow) //creating ui class and assigning it to ur member
+{
+    ui->setupUi(this); //setting up user interface
+    this->setCentralWidget(ui->textEdit);
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::on_actionNew_triggered()
+{
+    CurrentFile.clear();
+    ui->textEdit->setText(QString());
+}
+
+void MainWindow::on_actionOpen_triggered()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Open the file"); //lets you choose the file
+    QFile file(fileName); //just like in standard C++
+    CurrentFile = fileName;
+    if(!file.open(QIODevice::ReadOnly | QFile::Text)){ // if we can read it
+        QMessageBox::warning(this, "Warning", "Cannot open file:" + file.errorString());
+        return;
+    }
+    setWindowTitle(fileName); //makes title of widget the name of file
+    QTextStream in(&file);
+    QString text = in.readAll(); //this and previous line reads the file
+    ui->textEdit->setText(text); //and puts it into our notepad
+    file.close();
+}
+
+
+void MainWindow::on_actionSave_as_triggered()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Save as");
+    QFile file(fileName);
+    if(!file.open(QFile::WriteOnly | QFile::Text)){ // if we can save it
+        QMessageBox::warning(this, "Warning", "Cannot save file:" + file.errorString());
+        return;
+    }
+    CurrentFile = fileName;
+    setWindowTitle(fileName);
+    QTextStream out(&file);
+    QString text = ui->textEdit->toPlainText();
+    out << text;
+    file.close();
+}
+
+void MainWindow::on_actionPrint_triggered()
+{
+    QPrinter printer;
+    printer.setPrinterName("Printer nam");
+    QPrintDialog pDialog(&printer, this);
+    if(pDialog.exec() == QDialog::Rejected){
+        QMessageBox::warning(this, "Warning", "Cannot access printer");
+        return;
+    }
+    ui->textEdit->print(&printer);
+}
+
+void MainWindow::on_actionExit_triggered()
+{
+    QApplication::quit();
+}
+
+void MainWindow::on_actionCopy_triggered()
+{
+    ui->textEdit->copy();
+}
+
+void MainWindow::on_actionPaste_triggered()
+{
+    ui->textEdit->paste();
+}
+
+void MainWindow::on_actionCut_triggered()
+{
+    ui->textEdit->cut();
+}
+
+void MainWindow::on_actionUndo_triggered()
+{
+    ui->textEdit->undo();
+}
+
+void MainWindow::on_actionRedo_triggered()
+{
+    ui->textEdit->redo();
+}
